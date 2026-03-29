@@ -1,4 +1,4 @@
-import { Icon, Lock, Mail } from '@/components/icon';
+import { Icon } from '@/components/icon';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import {
@@ -20,9 +20,9 @@ export default function LoginPage() {
       <Card className="w-full max-w-md shadow-2xl border-0">
         <CardHeader className="text-center pb-2 pt-8">
           <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-            <Icon icon={Lock} />
+            <Icon name="Lock" />
           </div>
-          <h1 className="text-2xl font-bold text-foreground">
+          <h1 className="text-'2xl font-bold text-foreground">
             Área Administrativa
           </h1>
         </CardHeader>
@@ -37,7 +37,7 @@ export default function LoginPage() {
                   <FormControl>
                     <div className="relative">
                       <Icon
-                        icon={Mail}
+                        name="Mail"
                         className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"
                       />
                       <Input
@@ -61,7 +61,7 @@ export default function LoginPage() {
                   <FormControl>
                     <div className="relative">
                       <Icon
-                        icon={Lock}
+                        name="Lock"
                         className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"
                       />
                       <Input type="password" className="pl-10" {...field} />

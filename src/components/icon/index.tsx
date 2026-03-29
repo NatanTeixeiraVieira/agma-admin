@@ -1,21 +1,16 @@
-import { cn } from '@/lib/utils';
-import { Lock, LucideIcon, LucideProps, Mail } from 'lucide-react';
+import type { LucideProps } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
 
-export { Lock, Mail };
-
-export type { LucideIcon, LucideProps };
+export type IconName = keyof typeof LucideIcons;
 
 interface IconProps extends LucideProps {
-  icon: LucideIcon;
+  name: IconName;
 }
 
-export function Icon({
-  icon: IconComponent,
-  className,
-  size = 20,
-  ...props
-}: IconProps) {
-  return (
-    <IconComponent size={size} className={cn('z-10', className)} {...props} />
-  );
+export function Icon({ name, size = 20, ...props }: IconProps) {
+  const IconComponent = LucideIcons[name] as React.FC<LucideProps>;
+
+  if (!IconComponent) return null;
+
+  return <IconComponent size={size} {...props} />;
 }
