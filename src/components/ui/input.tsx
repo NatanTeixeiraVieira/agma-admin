@@ -47,7 +47,6 @@ function Input({
           'focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]',
           'aria-invalid:ring-destructive/20  aria-invalid:border-destructive',
           'disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm',
-          'read-only:pointer-events-none read-only:cursor-not-allowed read-only:focus-visible:ring-0 read-only:focus-visible:border-input',
           isPassword && 'pr-10',
           className,
         )}

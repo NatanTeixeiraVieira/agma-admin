@@ -20,7 +20,7 @@ export function useLogin() {
   const handleSubmit = form.handleSubmit((values: LoginFormValues) => {
     const success = login(values.email, values.password);
     if (success) {
-      navigate('/admin');
+      navigate('/transparencia');
     } else {
       form.setError('root', { message: 'Credenciais inválidas.' });
     }

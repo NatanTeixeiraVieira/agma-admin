@@ -1,6 +1,10 @@
 import { z } from 'zod';
+import { commonFieldSchema } from './common';
 
 export const loginFormSchema = z.object({
-  email: z.email('Informe um e-mail válido.'),
-  password: z.string().min(1, 'Informe a senha.'),
+  email: z.email('E-mail inválido'),
+  password: commonFieldSchema('A senha é obrigatória.').min(
+    8,
+    ' A senha deve conter no mínimo 8 caracteres.',
+  ),
 });
