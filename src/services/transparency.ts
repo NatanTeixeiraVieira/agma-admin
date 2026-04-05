@@ -1,50 +1,60 @@
-export type TransparencyDocument = {
-  id: string;
-  name: string;
-  type: string;
-  fileName: string;
-  fileUrl: string;
-  createdAt: string;
+import {
+  CreateTransparencyPortalDto,
+  CreateTransparencyPortalResponse,
+  FindAllTransparencyOptions,
+  TransparencyPaginated,
+} from '@/types/transparency';
+import { addSearchParamsInUrl } from '@/utils/pagination';
+import { api } from './api';
+
+export const getTransparency = async (options?: FindAllTransparencyOptions) => {
+  const url = addSearchParamsInUrl(
+    'v1/transparency-portal',
+    {
+      name: 'page',
+      value: options?.page,
+    },
+    {
+      name: 'limit',
+      value: options?.limit,
+    },
+    {
+      name: 'transparencyType',
+      value: options?.transparencyType,
+    },
+  );
+
+  const response = await api.get<TransparencyPaginated>(url);
+  return response;
 };
 
-const STORAGE_KEY = 'ong_documents';
-
-export function getDocuments(): TransparencyDocument[] {
-  const raw = localStorage.getItem(STORAGE_KEY);
-  return raw ? JSON.parse(raw) : [];
-}
-
-function saveDocuments(docs: TransparencyDocument[]): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(docs));
-}
-
-export function addDocument(
-  doc: Omit<TransparencyDocument, 'id' | 'createdAt'>,
-): TransparencyDocument {
-  const docs = getDocuments();
-  const newDoc: TransparencyDocument = {
-    ...doc,
-    id: crypto.randomUUID(),
-    createdAt: new Date().toISOString(),
-  };
-  docs.push(newDoc);
-  saveDocuments(docs);
-  return newDoc;
-}
-
-export function updateDocument(
-  id: string,
-  updates: Partial<
-    Pick<TransparencyDocument, 'name' | 'type' | 'fileName' | 'fileUrl'>
-  >,
-): void {
-  const docs = getDocuments().map((d) =>
-    d.id === id ? { ...d, ...updates } : d,
+export const createTransparency = async ({
+  pdf,
+  transparencyType,
+}: CreateTransparencyPortalDto) => {
+  const formData = new FormData();
+  formData.append('imagesDto', JSON.stringify(transparencyType));
+  formData.append('image', pdf);
+  const response = await api.post<CreateTransparencyPortalResponse>(
+    '/images/v1',
+    formData,
   );
-  saveDocuments(docs);
-}
+  return response;
+};
 
-export function deleteDocument(id: string): void {
-  const docs = getDocuments().filter((d) => d.id !== id);
-  saveDocuments(docs);
+// export function updateDocument(
+//   id: string,
+//   updates: Partial<
+//     Pick<TransparencyDocument, 'name' | 'type' | 'fileName' | 'fileUrl'>
+//   >,
+// ): void {
+//   const docs = getTransparency().map((d) =>
+//     d.id === id ? { ...d, ...updates } : d,
+//   );
+//   saveDocuments(docs);
+// }
+
+export async function deleteTransparency(id: string) {
+  const response = await api.delete<void>(`/images/v1/${id}`);
+  return response;
 }

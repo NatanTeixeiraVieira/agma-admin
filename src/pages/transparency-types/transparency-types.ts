@@ -1,13 +1,15 @@
 import { toast } from '@/components/ui/sonner';
 import { transparencyTypesKey } from '@/constants/query-keys';
 import {
-  addTransparencyType,
+  createTransparencyType,
   deleteTransparencyType,
   getTransparencyTypes,
-  TransparencyTypes,
   updateTransparencyType,
 } from '@/services/transparency-types';
-import { TransparencyTypeFormValues } from '@/types/transparency-types';
+import {
+  TransparencyTypeFormValues,
+  TransparencyTypes,
+} from '@/types/transparency-types';
 import { transparencyTypeFormSchema } from '@/validations/schemas/transparency-types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -26,7 +28,7 @@ export function useTransparencyTypes() {
 
   const { data: transparencyTypes = [] } = useQuery({
     queryKey: transparencyTypesKey(),
-    queryFn: getTransparencyTypes,
+    queryFn: async () => (await getTransparencyTypes()).data,
   });
 
   const form = useForm<TransparencyTypeFormValues>({
@@ -72,10 +74,10 @@ export function useTransparencyTypes() {
       }
 
       if (editingType) {
-        updateTransparencyType(editingType.id, trimmedName);
+        updateTransparencyType({ id: editingType.id, name: trimmedName });
         toast.success('Tipo de Transparência atualizado com sucesso!');
       } else {
-        addTransparencyType(trimmedName);
+        createTransparencyType({ name: trimmedName });
         toast.success('Tipo de Transparência adicionado com sucesso!');
       }
 

@@ -1,81 +1,58 @@
+import { toast } from '@/components/ui/sonner';
 import {
   transparencyDocumentsKey,
   transparencyTypesKey,
 } from '@/constants/query-keys';
 import {
-  addDocument,
-  deleteDocument,
-  getDocuments,
-  updateDocument,
-  type TransparencyDocument,
+  createTransparency,
+  deleteTransparency,
+  getTransparency,
 } from '@/services/transparency';
 import { getTransparencyTypes } from '@/services/transparency-types';
+import { DocumentFormValues, Transparency } from '@/types/transparency';
+import { documentFormSchema } from '@/validations/schemas/transparency';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { toast } from 'sonner';
-import { z } from 'zod';
-
-const documentFormSchema = z.object({
-  name: z.string().min(1, 'Informe o nome do relatório.'),
-  type: z.string().min(1, 'Selecione o tipo do documento.'),
-});
-
-export type DocumentFormValues = z.infer<typeof documentFormSchema>;
 
 export const allTypesOption = 'Todos os tipos';
 
 export function useTransparency() {
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingDoc, setEditingDoc] = useState<TransparencyDocument | null>(
-    null,
-  );
+  const [editingDoc, setEditingDoc] = useState<Transparency | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [filterType, setFilterType] = useState<string | null>(allTypesOption);
-  const [deleteTarget, setDeleteTarget] = useState<TransparencyDocument | null>(
-    null,
-  );
+  const [deleteTarget, setDeleteTarget] = useState<Transparency | null>(null);
 
   const { data: transparency = [] } = useQuery({
-    queryKey: transparencyDocumentsKey(),
-    queryFn: getDocuments,
+    queryKey: transparencyDocumentsKey(filterType),
+    queryFn: async () => {
+      const options =
+        filterType && filterType !== allTypesOption
+          ? { transparencyType: filterType, page: 1, limit: 100 }
+          : { page: 1, limit: 100 };
+      return (await getTransparency(options)).data.items;
+    },
   });
 
   const { data: documentTypes = [] } = useQuery({
     queryKey: transparencyTypesKey(),
-    queryFn: getTransparencyTypes,
+    queryFn: async () => (await getTransparencyTypes()).data,
   });
 
   const form = useForm<DocumentFormValues>({
     resolver: zodResolver(documentFormSchema),
-    defaultValues: { name: '', type: '' },
+    defaultValues: { transparencyType: '' },
   });
-
-  const filteredTransparencyDocuments = useMemo(
-    () =>
-      filterType === allTypesOption
-        ? transparency
-        : transparency.filter((d) => d.type === filterType),
-    [transparency, filterType],
-  );
-
-  const typeCounts = useMemo(
-    () =>
-      documentTypes.map((dt) => ({
-        type: dt.name,
-        count: transparency.filter((d) => d.type === dt.name).length,
-      })),
-    [transparency, documentTypes],
-  );
 
   const invalidate = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ['transparency'] });
   }, [queryClient]);
 
   const resetForm = useCallback(() => {
-    form.reset({ name: '', type: '' });
+    form.reset({ transparencyType: '' });
     setFile(null);
     setEditingDoc(null);
   }, [form]);
@@ -86,9 +63,9 @@ export function useTransparency() {
   }, [resetForm]);
 
   const openEditDialog = useCallback(
-    (doc: TransparencyDocument) => {
+    (doc: Transparency) => {
       setEditingDoc(doc);
-      form.reset({ name: doc.name, type: doc.type });
+      form.reset({ transparencyType: '' });
       setFile(null);
       setDialogOpen(true);
     },
@@ -97,40 +74,25 @@ export function useTransparency() {
 
   const handleSubmit = useCallback(
     (values: DocumentFormValues) => {
-      if (editingDoc) {
-        const updates: Partial<
-          Pick<TransparencyDocument, 'name' | 'type' | 'fileName' | 'fileUrl'>
-        > = {
-          name: values.name.trim(),
-          type: values.type,
-        };
-        if (file) {
-          if (file.type !== 'application/pdf') {
-            toast.error('Apenas arquivos PDF são permitidos.');
-            return;
-          }
-          updates.fileName = file.name;
-          updates.fileUrl = URL.createObjectURL(file);
-        }
-        updateDocument(editingDoc.id, updates);
-        toast.success('Documento atualizado com sucesso!');
-      } else {
-        if (!file) {
-          toast.error('Selecione um arquivo PDF.');
-          return;
-        }
-        if (file.type !== 'application/pdf') {
-          toast.error('Apenas arquivos PDF são permitidos.');
-          return;
-        }
-        addDocument({
-          name: values.name.trim(),
-          type: values.type,
-          fileName: file.name,
-          fileUrl: URL.createObjectURL(file),
-        });
-        toast.success('Documento adicionado com sucesso!');
+      if (!file) {
+        toast.error('Selecione um arquivo PDF.');
+        return;
       }
+      if (file.type !== 'application/pdf') {
+        toast.error('Apenas arquivos PDF são permitidos.');
+        return;
+      }
+
+      createTransparency({
+        pdf: file,
+        transparencyType: { id: values.transparencyType },
+      });
+
+      toast.success(
+        editingDoc
+          ? 'Documento atualizado com sucesso!'
+          : 'Documento adicionado com sucesso!',
+      );
 
       invalidate();
       resetForm();
@@ -139,13 +101,13 @@ export function useTransparency() {
     [editingDoc, file, invalidate, resetForm],
   );
 
-  const requestDelete = useCallback((doc: TransparencyDocument) => {
+  const requestDelete = useCallback((doc: Transparency) => {
     setDeleteTarget(doc);
   }, []);
 
   const confirmDelete = useCallback(() => {
     if (deleteTarget) {
-      deleteDocument(deleteTarget.id);
+      deleteTransparency(deleteTarget.id);
       invalidate();
       toast.success('Documento excluído.');
       setDeleteTarget(null);
@@ -167,8 +129,6 @@ export function useTransparency() {
   return {
     transparency,
     documentTypes,
-    filteredTransparencyDocuments,
-    typeCounts,
     filterType,
     dialogOpen,
     editingDoc,
