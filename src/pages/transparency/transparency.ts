@@ -13,26 +13,29 @@ import { DocumentFormValues, Transparency } from '@/types/transparency';
 import { documentFormSchema } from '@/validations/schemas/transparency';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 export const allTypesOption = 'Todos os tipos';
 
 export function useTransparency() {
   const queryClient = useQueryClient();
+
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingDoc, setEditingDoc] = useState<Transparency | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [filterType, setFilterType] = useState<string | null>(allTypesOption);
   const [deleteTarget, setDeleteTarget] = useState<Transparency | null>(null);
 
+  const options = useMemo(() => {
+    return filterType && filterType !== allTypesOption
+      ? { transparencyType: filterType, page: 1, limit: 100 }
+      : { page: 1, limit: 100 };
+  }, [filterType]);
+
   const { data: transparency = [] } = useQuery({
-    queryKey: transparencyDocumentsKey(filterType),
+    queryKey: transparencyDocumentsKey(options),
     queryFn: async () => {
-      const options =
-        filterType && filterType !== allTypesOption
-          ? { transparencyType: filterType, page: 1, limit: 100 }
-          : { page: 1, limit: 100 };
       return (await getTransparency(options)).data.items;
     },
   });
@@ -126,6 +129,10 @@ export function useTransparency() {
     [resetForm],
   );
 
+  const handleFileClick = (url: string) => {
+    window.open(url, '_blank');
+  };
+
   return {
     transparency,
     documentTypes,
@@ -135,6 +142,7 @@ export function useTransparency() {
     file,
     form,
     deleteTarget,
+    handleFileClick,
     setFilterType,
     handleDialogChange,
     setFile,

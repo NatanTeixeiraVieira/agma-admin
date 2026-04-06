@@ -1,5 +1,6 @@
+import { FindAllTransparencyOptions } from '@/types/transparency';
+
 export const transparencyTypesKey = () => ['transparency-types'];
-export const transparencyDocumentsKey = (type?: string | null) => [
-  'transparency-documents',
-  type,
-];
+export const transparencyDocumentsKey = (
+  filter?: FindAllTransparencyOptions,
+) => ['transparency-documents', JSON.stringify(filter)];

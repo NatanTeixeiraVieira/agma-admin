@@ -33,10 +33,10 @@ export const createTransparency = async ({
   transparencyType,
 }: CreateTransparencyPortalDto) => {
   const formData = new FormData();
-  formData.append('imagesDto', JSON.stringify(transparencyType));
-  formData.append('image', pdf);
+  formData.append('transparencyType', JSON.stringify(transparencyType));
+  formData.append('pdf', pdf);
   const response = await api.post<CreateTransparencyPortalResponse>(
-    '/images/v1',
+    '/v1/transparency-portal',
     formData,
   );
   return response;
@@ -55,6 +55,6 @@ export const createTransparency = async ({
 // }
 
 export async function deleteTransparency(id: string) {
-  const response = await api.delete<void>(`/images/v1/${id}`);
+  const response = await api.delete<void>(`/v1/transparency-portal/${id}`);
   return response;
 }

@@ -12,12 +12,11 @@ import {
 } from '@/types/transparency-types';
 import { transparencyTypeFormSchema } from '@/validations/schemas/transparency-types';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 export function useTransparencyTypes() {
-  const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingType, setEditingType] = useState<TransparencyTypes | null>(
     null,
@@ -31,14 +30,50 @@ export function useTransparencyTypes() {
     queryFn: async () => (await getTransparencyTypes()).data,
   });
 
+  const queryClient = useQueryClient();
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteTransparencyType,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: transparencyTypesKey() });
+      toast.success('Tipo de Transparência excluído.');
+      setDeleteTarget(null);
+    },
+    onError: () => {
+      toast.error('Erro ao excluir o tipo de Transparência.');
+    },
+  });
+
+  const createMutation = useMutation({
+    mutationFn: createTransparencyType,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: transparencyTypesKey() });
+      toast.success('Tipo de Transparência adicionado com sucesso!');
+      resetForm();
+      setDialogOpen(false);
+    },
+    onError: () => {
+      toast.error('Erro ao adicionar o tipo de Transparência.');
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: updateTransparencyType,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: transparencyTypesKey() });
+      toast.success('Tipo de Transparência atualizado com sucesso!');
+      resetForm();
+      setDialogOpen(false);
+    },
+    onError: () => {
+      toast.error('Erro ao atualizar o tipo de Transparência.');
+    },
+  });
+
   const form = useForm<TransparencyTypeFormValues>({
     resolver: zodResolver(transparencyTypeFormSchema),
     defaultValues: { name: '' },
   });
-
-  const invalidate = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: transparencyTypesKey() });
-  }, [queryClient]);
 
   const resetForm = useCallback(() => {
     form.reset({ name: '' });
@@ -74,18 +109,12 @@ export function useTransparencyTypes() {
       }
 
       if (editingType) {
-        updateTransparencyType({ id: editingType.id, name: trimmedName });
-        toast.success('Tipo de Transparência atualizado com sucesso!');
+        updateMutation.mutate({ id: editingType.id, name: trimmedName });
       } else {
-        createTransparencyType({ name: trimmedName });
-        toast.success('Tipo de Transparência adicionado com sucesso!');
+        createMutation.mutate({ name: trimmedName });
       }
-
-      invalidate();
-      resetForm();
-      setDialogOpen(false);
     },
-    [editingType, transparencyTypes, invalidate, resetForm],
+    [editingType, transparencyTypes, updateMutation, createMutation],
   );
 
   const requestDelete = useCallback((docType: TransparencyTypes) => {
@@ -94,12 +123,9 @@ export function useTransparencyTypes() {
 
   const confirmDelete = useCallback(() => {
     if (deleteTarget) {
-      deleteTransparencyType(deleteTarget.id);
-      invalidate();
-      toast.success('Tipo de Transparência excluído.');
-      setDeleteTarget(null);
+      deleteMutation.mutate(deleteTarget.id);
     }
-  }, [deleteTarget, invalidate]);
+  }, [deleteTarget, deleteMutation]);
 
   const cancelDelete = useCallback(() => {
     setDeleteTarget(null);

@@ -8,7 +8,7 @@ import {
 import { api } from './api';
 
 export const getTransparencyTypes = async () => {
-  const response = await api.get<TransparencyTypes[]>('/image-type/v1');
+  const response = await api.get<TransparencyTypes[]>('/v1/transparency-type');
 
   return response;
 };

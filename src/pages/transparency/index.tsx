@@ -45,6 +45,7 @@ export default function TransparencyPortalPage() {
     editingDoc,
     file,
     documentTypes,
+    handleFileClick,
     setFilterType,
     handleDialogChange,
     setFile,
@@ -58,7 +59,6 @@ export default function TransparencyPortalPage() {
   return (
     <>
       <div className="container mx-auto px-4 py-8 space-y-6">
-        {/* Actions bar */}
         <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
           <div className="flex items-center gap-3">
             <Select
@@ -66,7 +66,10 @@ export default function TransparencyPortalPage() {
               onValueChange={setFilterType}
             >
               <SelectTrigger className="w-65">
-                <SelectValue placeholder="Filtrar por tipo" />
+                <SelectValue placeholder="Filtrar por tipo">
+                  {documentTypes.find(({ id }) => id === filterType)?.name ??
+                    allTypesOption}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value={allTypesOption}>Todos os tipos</SelectItem>
@@ -196,19 +199,19 @@ export default function TransparencyPortalPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Arquivo</TableHead>
-                      <TableHead>Caminho</TableHead>
+                      <TableHead>Nome</TableHead>
                       <TableHead className="w-25">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {transparency.map((doc) => (
-                      <TableRow key={doc.id}>
+                      <TableRow
+                        key={doc.id}
+                        className="cursor-pointer"
+                        onClick={() => handleFileClick(doc.path)}
+                      >
                         <TableCell className="font-medium">
                           {doc.filename}
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">
-                          {doc.path}
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1">
@@ -216,7 +219,10 @@ export default function TransparencyPortalPage() {
                               variant="ghost"
                               size="icon"
                               className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                              onClick={() => requestDelete(doc)}
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                requestDelete(doc);
+                              }}
                             >
                               <Icon name="Trash2" className="w-4 h-4" />
                             </Button>
