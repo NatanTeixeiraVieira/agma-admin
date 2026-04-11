@@ -1,14 +1,16 @@
+import { toast } from '@/components/ui/sonner';
+import { login } from '@/services/auth';
 import { useAuthStore } from '@/stores/auth-store';
-import { LoginFormValues } from '@/types/login';
+import { LoginFormValues } from '@/types/auth';
 import { loginFormSchema } from '@/validations/schemas/login';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation } from '@tanstack/react-query';
+import { AxiosError } from 'axios';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
 
 export function useLogin() {
-  const {
-    actions: { login },
-  } = useAuthStore();
+  const { actions } = useAuthStore();
 
   const navigate = useNavigate();
 
@@ -17,13 +19,24 @@ export function useLogin() {
     defaultValues: { email: '', password: '' },
   });
 
-  const handleSubmit = form.handleSubmit((values: LoginFormValues) => {
-    const success = login(values.email, values.password);
-    if (success) {
+  const loginMutation = useMutation({
+    mutationFn: login,
+    onSuccess: ({ data }) => {
+      actions.login(data);
       navigate('/transparencia');
-    } else {
-      form.setError('root', { message: 'Credenciais inválidas.' });
-    }
+    },
+    onError: (error: AxiosError) => {
+      if (error.status === 401) {
+        toast.error((error.response?.data as any)?.message);
+        return;
+      }
+
+      toast.error('Houve um erro ao entrar.');
+    },
+  });
+
+  const handleSubmit = form.handleSubmit((values: LoginFormValues) => {
+    loginMutation.mutate(values);
   });
 
   return { form, handleSubmit };

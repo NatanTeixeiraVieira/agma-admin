@@ -13,9 +13,12 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
+import { logout } from '@/services/auth';
 import { useAuthStore } from '@/stores/auth-store';
+import { useMutation } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { Outlet, useNavigate } from 'react-router';
+import { toast } from 'sonner';
 import { Icon, IconName } from '../icon';
 import { Link } from '../link';
 
@@ -77,19 +80,30 @@ function AdminSidebar() {
 
 export default function AdminLayout() {
   const {
-    state: { isAuthenticated },
-    actions: { logout },
+    state: { auth },
+    actions,
   } = useAuthStore();
+
+  const logoutMutation = useMutation({
+    mutationFn: logout,
+    onSuccess: () => {
+      actions.logout();
+      navigate('/login');
+    },
+    onError: () => {
+      toast.error('Houve um erro ao sair.');
+    },
+  });
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!auth) {
       navigate('/login');
     }
-  }, [isAuthenticated, navigate]);
+  }, [auth, navigate]);
 
-  if (!isAuthenticated) return null;
+  if (!auth) return null;
 
   return (
     <SidebarProvider>
@@ -106,10 +120,7 @@ export default function AdminLayout() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => {
-                logout();
-                navigate('/login');
-              }}
+              onClick={() => logoutMutation.mutate()}
             >
               <Icon name="LogOut" className="w-4 h-4 mr-1" />
               Sair

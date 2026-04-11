@@ -1,37 +1,38 @@
+import { LoginResponse } from '@/types/auth';
 import { create } from 'zustand';
 
 type AuthState = {
   state: {
-    isAuthenticated: boolean;
+    auth: LoginResponse | null;
   };
   actions: {
-    login: (email: string, password: string) => boolean;
+    login: (loginResponse: LoginResponse) => boolean;
     logout: () => void;
   };
 };
 
-export const useAuthStore = create<AuthState>((set) => ({
-  state: {
-    isAuthenticated: localStorage.getItem('ong_auth') === 'true',
-  },
-  actions: {
-    login: (email, password) => {
-      if (email && password) {
-        localStorage.setItem('ong_auth', 'true');
+export const useAuthStore = create<AuthState>((set) => {
+  const authString = localStorage.getItem('auth');
+  const auth = authString ? JSON.parse(authString) : null;
+  return {
+    state: { auth },
+    actions: {
+      login: (loginResponse) => {
+        localStorage.setItem('auth', JSON.stringify(loginResponse));
         set((state) => ({
           ...state,
-          state: { ...state.state, isAuthenticated: true },
+          state: { ...state.state, auth: loginResponse },
         }));
         return true;
-      }
-      return false;
+      },
+
+      logout: () => {
+        localStorage.removeItem('auth');
+        set((state) => ({
+          ...state,
+          state: { ...state.state, auth: null },
+        }));
+      },
     },
-    logout: () => {
-      localStorage.removeItem('ong_auth');
-      set((state) => ({
-        ...state,
-        state: { ...state.state, isAuthenticated: false },
-      }));
-    },
-  },
-}));
+  };
+});
