@@ -121,7 +121,14 @@ export default function TransparencyPortalPage() {
                       >
                         <FormControl>
                           <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Selecione o tipo" />
+                            <SelectValue placeholder="Selecione o tipo">
+                              {
+                                documentTypes.find(
+                                  (dt) =>
+                                    dt.id === form.watch('transparencyType'),
+                                )?.name
+                              }
+                            </SelectValue>
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
