@@ -6,11 +6,21 @@ import { loginFormSchema } from '@/validations/schemas/login';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
 
 export function useLogin() {
-  const { actions } = useAuthStore();
+  const {
+    state: { auth },
+    actions,
+  } = useAuthStore();
+
+  useEffect(() => {
+    if (auth) {
+      navigate('/transparencia');
+    }
+  }, [auth]);
 
   const navigate = useNavigate();
 
@@ -23,7 +33,6 @@ export function useLogin() {
     mutationFn: login,
     onSuccess: ({ data }) => {
       actions.login(data);
-      navigate('/transparencia');
     },
     onError: (error: AxiosError) => {
       if (error.status === 401) {

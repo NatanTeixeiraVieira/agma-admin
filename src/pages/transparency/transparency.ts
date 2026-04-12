@@ -12,7 +12,7 @@ import { getTransparencyTypes } from '@/services/transparency-types';
 import { DocumentFormValues, Transparency } from '@/types/transparency';
 import { documentFormSchema } from '@/validations/schemas/transparency';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
@@ -50,17 +50,57 @@ export function useTransparency() {
     defaultValues: { transparencyType: '' },
   });
 
-  const invalidate = useCallback(() => {
-    queryClient.invalidateQueries({
-      queryKey: transparencyDocumentsKey(options),
-    });
-  }, [queryClient]);
-
   const resetForm = useCallback(() => {
     form.reset({ transparencyType: '' });
     setFile(null);
     setEditingDoc(null);
   }, [form]);
+
+  const createMutation = useMutation({
+    mutationFn: async (data: {
+      pdf: File;
+      transparencyType: { id: string };
+    }) => {
+      return await createTransparency(data);
+    },
+    onSuccess: () => {
+      const successMessage = editingDoc
+        ? 'Documento atualizado com sucesso!'
+        : 'Documento adicionado com sucesso!';
+
+      toast.success(successMessage);
+      resetForm();
+      setDialogOpen(false);
+
+      queryClient.invalidateQueries({
+        queryKey: transparencyDocumentsKey(options),
+      });
+    },
+    onError: (error) => {
+      toast.error(
+        error instanceof Error ? error.message : 'Erro ao salvar documento',
+      );
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return await deleteTransparency(id);
+    },
+    onSuccess: () => {
+      toast.success('Documento excluído com sucesso!');
+      setDeleteTarget(null);
+
+      queryClient.invalidateQueries({
+        queryKey: transparencyDocumentsKey(options),
+      });
+    },
+    onError: (error) => {
+      toast.error(
+        error instanceof Error ? error.message : 'Erro ao deletar documento',
+      );
+    },
+  });
 
   const openAddDialog = useCallback(() => {
     resetForm();
@@ -88,22 +128,12 @@ export function useTransparency() {
         return;
       }
 
-      await createTransparency({
+      createMutation.mutate({
         pdf: file,
         transparencyType: { id: values.transparencyType },
       });
-
-      toast.success(
-        editingDoc
-          ? 'Documento atualizado com sucesso!'
-          : 'Documento adicionado com sucesso!',
-      );
-
-      resetForm();
-      setDialogOpen(false);
-      invalidate();
     },
-    [editingDoc, file, invalidate, resetForm],
+    [file, createMutation],
   );
 
   const requestDelete = useCallback((doc: Transparency) => {
@@ -112,12 +142,9 @@ export function useTransparency() {
 
   const confirmDelete = useCallback(async () => {
     if (deleteTarget) {
-      await deleteTransparency(deleteTarget.id);
-      invalidate();
-      toast.success('Documento excluído.');
-      setDeleteTarget(null);
+      deleteMutation.mutate(deleteTarget.id);
     }
-  }, [deleteTarget, invalidate]);
+  }, [deleteTarget, deleteMutation]);
 
   const cancelDelete = useCallback(() => {
     setDeleteTarget(null);
@@ -144,6 +171,8 @@ export function useTransparency() {
     file,
     form,
     deleteTarget,
+    isCreating: createMutation.isPending,
+    isDeleting: deleteMutation.isPending,
     handleFileClick,
     setFilterType,
     handleDialogChange,

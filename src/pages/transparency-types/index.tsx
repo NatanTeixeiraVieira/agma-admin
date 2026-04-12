@@ -36,6 +36,7 @@ const TransparencyTypesPage = () => {
     form,
     deleteTarget,
     dialogOpen,
+    isPending,
     handleDialogChange,
     openAddDialog,
     openEditDialog,
@@ -89,7 +90,7 @@ const TransparencyTypesPage = () => {
                     </FormItem>
                   )}
                 />
-                <Button type="submit" className="w-full">
+                <Button disabled={isPending} type="submit" className="w-full">
                   {editingType ? 'Salvar Alterações' : 'Adicionar Tipo'}
                 </Button>
               </Form>
@@ -165,6 +166,7 @@ const TransparencyTypesPage = () => {
       </div>
 
       <DeleteConfirmDialog
+        disabled={isPending}
         open={!!deleteTarget}
         onOpenChange={(open) => !open && cancelDelete()}
         onConfirm={confirmDelete}

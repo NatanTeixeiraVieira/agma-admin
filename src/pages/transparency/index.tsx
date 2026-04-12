@@ -45,6 +45,8 @@ export default function TransparencyPortalPage() {
     editingDoc,
     file,
     documentTypes,
+    isCreating,
+    isDeleting,
     handleFileClick,
     setFilterType,
     handleDialogChange,
@@ -171,7 +173,7 @@ export default function TransparencyPortalPage() {
                     />
                   </div>
                 </div>
-                <Button type="submit" className="w-full">
+                <Button disabled={isCreating} type="submit" className="w-full">
                   {editingDoc ? 'Salvar Alterações' : 'Adicionar Documento'}
                 </Button>
               </Form>
@@ -246,6 +248,7 @@ export default function TransparencyPortalPage() {
       </div>
 
       <DeleteConfirmDialog
+        disabled={isDeleting}
         open={!!deleteTarget}
         onOpenChange={(open) => !open && cancelDelete()}
         onConfirm={confirmDelete}
