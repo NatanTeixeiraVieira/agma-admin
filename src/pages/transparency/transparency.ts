@@ -51,7 +51,9 @@ export function useTransparency() {
   });
 
   const invalidate = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: ['transparency'] });
+    queryClient.invalidateQueries({
+      queryKey: transparencyDocumentsKey(options),
+    });
   }, [queryClient]);
 
   const resetForm = useCallback(() => {
@@ -76,7 +78,7 @@ export function useTransparency() {
   );
 
   const handleSubmit = useCallback(
-    (values: DocumentFormValues) => {
+    async (values: DocumentFormValues) => {
       if (!file) {
         toast.error('Selecione um arquivo PDF.');
         return;
@@ -86,7 +88,7 @@ export function useTransparency() {
         return;
       }
 
-      createTransparency({
+      await createTransparency({
         pdf: file,
         transparencyType: { id: values.transparencyType },
       });
@@ -97,9 +99,9 @@ export function useTransparency() {
           : 'Documento adicionado com sucesso!',
       );
 
-      invalidate();
       resetForm();
       setDialogOpen(false);
+      invalidate();
     },
     [editingDoc, file, invalidate, resetForm],
   );
@@ -108,9 +110,9 @@ export function useTransparency() {
     setDeleteTarget(doc);
   }, []);
 
-  const confirmDelete = useCallback(() => {
+  const confirmDelete = useCallback(async () => {
     if (deleteTarget) {
-      deleteTransparency(deleteTarget.id);
+      await deleteTransparency(deleteTarget.id);
       invalidate();
       toast.success('Documento excluído.');
       setDeleteTarget(null);
