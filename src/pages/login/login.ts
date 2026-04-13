@@ -48,5 +48,5 @@ export function useLogin() {
     loginMutation.mutate(values);
   });
 
-  return { form, handleSubmit };
+  return { form, isPending: loginMutation.isPending, handleSubmit };
 }

@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input';
 import { useLogin } from './login';
 
 export default function LoginPage() {
-  const { form, handleSubmit } = useLogin();
+  const { form, isPending, handleSubmit } = useLogin();
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-primary to-secondary p-4">
@@ -76,7 +76,12 @@ export default function LoginPage() {
                 {form.formState.errors.root.message}
               </p>
             )}
-            <Button type="submit" className="w-full" size="lg">
+            <Button
+              disabled={isPending}
+              type="submit"
+              className="w-full"
+              size="lg"
+            >
               Entrar
             </Button>
           </Form>
