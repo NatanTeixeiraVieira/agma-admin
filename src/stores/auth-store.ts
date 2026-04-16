@@ -1,4 +1,5 @@
 import { LoginResponse } from '@/types/auth';
+import Cookies from 'js-cookie';
 import { create } from 'zustand';
 
 type AuthState = {
@@ -12,13 +13,15 @@ type AuthState = {
 };
 
 export const useAuthStore = create<AuthState>((set) => {
-  const authString = localStorage.getItem('auth');
+  const authString = Cookies.get('auth');
   const auth = authString ? JSON.parse(authString) : null;
   return {
     state: { auth },
     actions: {
       login: (loginResponse) => {
-        localStorage.setItem('auth', JSON.stringify(loginResponse));
+        Cookies.set('auth', JSON.stringify(loginResponse), {
+          expires: 1, // 1 day
+        });
         set((state) => ({
           ...state,
           state: { ...state.state, auth: loginResponse },
@@ -27,7 +30,7 @@ export const useAuthStore = create<AuthState>((set) => {
       },
 
       logout: () => {
-        localStorage.removeItem('auth');
+        Cookies.remove('auth');
         set((state) => ({
           ...state,
           state: { ...state.state, auth: null },
