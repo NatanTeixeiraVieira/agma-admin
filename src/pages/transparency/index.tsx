@@ -93,7 +93,10 @@ export default function TransparencyPortalPage() {
             )}
           </div>
 
-          <Dialog open={dialogOpen} onOpenChange={handleDialogChange}>
+          <Dialog
+            open={dialogOpen || isCreating}
+            onOpenChange={handleDialogChange}
+          >
             <DialogTrigger>
               <Button onClick={openAddDialog}>
                 <Icon name="Plus" className="w-4 h-4 mr-1" />

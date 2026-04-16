@@ -36,7 +36,9 @@ const TransparencyTypesPage = () => {
     form,
     deleteTarget,
     dialogOpen,
-    isPending,
+    isCreating,
+    isDeleting,
+    isUpdating,
     handleDialogChange,
     openAddDialog,
     openEditDialog,
@@ -54,7 +56,10 @@ const TransparencyTypesPage = () => {
             Tipos de Transparência
           </h2>
 
-          <Dialog open={dialogOpen} onOpenChange={handleDialogChange}>
+          <Dialog
+            open={dialogOpen || isCreating || isUpdating}
+            onOpenChange={handleDialogChange}
+          >
             <DialogTrigger>
               <Button onClick={openAddDialog}>
                 <Icon name="Plus" />
@@ -90,7 +95,11 @@ const TransparencyTypesPage = () => {
                     </FormItem>
                   )}
                 />
-                <Button disabled={isPending} type="submit" className="w-full">
+                <Button
+                  disabled={isCreating || isUpdating}
+                  type="submit"
+                  className="w-full"
+                >
                   {editingType ? 'Salvar Alterações' : 'Adicionar Tipo'}
                 </Button>
               </Form>
@@ -166,7 +175,7 @@ const TransparencyTypesPage = () => {
       </div>
 
       <DeleteConfirmDialog
-        disabled={isPending}
+        disabled={isDeleting}
         open={!!deleteTarget}
         onOpenChange={(open) => !open && cancelDelete()}
         onConfirm={confirmDelete}

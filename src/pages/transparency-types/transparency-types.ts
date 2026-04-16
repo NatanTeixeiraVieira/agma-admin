@@ -145,10 +145,9 @@ export function useTransparencyTypes() {
     deleteTarget,
     editingType,
     form,
-    isPending:
-      createMutation.isPending ||
-      updateMutation.isPending ||
-      deleteMutation.isPending,
+    isCreating: createMutation.isPending,
+    isUpdating: updateMutation.isPending,
+    isDeleting: deleteMutation.isPending,
     handleDialogChange,
     openAddDialog,
     openEditDialog,
