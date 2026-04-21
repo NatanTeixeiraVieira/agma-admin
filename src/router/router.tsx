@@ -1,3 +1,4 @@
+import FamilyRegistrationPage from '@/pages/family-registration';
 import { createBrowserRouter, RouterProvider } from 'react-router';
 import AdminLayout from '../components/admin-layout';
 import LoginPage from '../pages/login';
@@ -7,6 +8,7 @@ import TransparencyTypesPage from '../pages/transparency-types';
 
 const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
+  { path: '/cadastro-familia/:token', element: <FamilyRegistrationPage /> },
   {
     path: '/',
     element: <AdminLayout />,
