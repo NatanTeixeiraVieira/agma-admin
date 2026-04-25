@@ -1,7 +1,7 @@
 import { toast } from '@/components/ui/sonner';
-import { addFamily } from '@/services/families';
-import { FamilyFormData } from '@/types/families';
-import { familySchema } from '@/validations/schemas/families';
+import { addFamily } from '@/services/family';
+import { FamilyFormData } from '@/types/family';
+import { familySchema } from '@/validations/schemas/family';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';

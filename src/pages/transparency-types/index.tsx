@@ -26,7 +26,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Pencil, Tag, Trash2 } from 'lucide-react';
 import { useTransparencyTypes } from './transparency-types';
 
 const TransparencyTypesPage = () => {
@@ -120,7 +119,10 @@ const TransparencyTypesPage = () => {
           <CardContent>
             {transparencyTypes.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
-                <Tag className="w-12 h-12 mx-auto mb-3 opacity-40" />
+                <Icon
+                  name="Tag"
+                  className="w-12 h-12 mx-auto mb-3 opacity-40"
+                />
                 <p>Nenhum tipo de Transparência cadastrado.</p>
               </div>
             ) : (
@@ -152,7 +154,7 @@ const TransparencyTypesPage = () => {
                               className="text-muted-foreground hover:text-primary hover:bg-primary/10"
                               onClick={() => openEditDialog(docType)}
                             >
-                              <Pencil className="w-4 h-4" />
+                              <Icon name="Pencil" className="w-4 h-4" />
                             </Button>
                             <Button
                               variant="ghost"
@@ -160,7 +162,7 @@ const TransparencyTypesPage = () => {
                               className="text-destructive hover:text-destructive hover:bg-destructive/10"
                               onClick={() => requestDelete(docType)}
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Icon name="Trash2" className="w-4 h-4" />
                             </Button>
                           </div>
                         </TableCell>

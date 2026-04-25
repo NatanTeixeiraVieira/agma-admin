@@ -1,6 +1,5 @@
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { CalendarIcon } from 'lucide-react';
 import { useFormContext } from 'react-hook-form';
 
 import { Button } from '@/components/ui/button';
@@ -18,6 +17,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
+import { Icon } from '../icon';
 
 interface DateFieldProps {
   name: string;
@@ -53,7 +53,10 @@ export function DateField({ name, label, required }: DateFieldProps) {
                   ) : (
                     <span>Selecione uma data</span>
                   )}
-                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                  <Icon
+                    name="CalendarIcon"
+                    className="ml-auto h-4 w-4 opacity-50"
+                  />
                 </Button>
               </FormControl>
             </PopoverTrigger>

@@ -1,3 +1,4 @@
+import FamiliesAdminPage from '@/pages/family';
 import FamilyRegistrationPage from '@/pages/family-registration';
 import { createBrowserRouter, RouterProvider } from 'react-router';
 import AdminLayout from '../components/admin-layout';
@@ -15,6 +16,7 @@ const router = createBrowserRouter([
     children: [
       { path: 'tipos-transparencia', element: <TransparencyTypesPage /> },
       { path: 'transparencia', element: <TransparencyPage /> },
+      { path: 'familia', element: <FamiliesAdminPage /> },
     ],
   },
   { path: '*', element: <NotFound /> },

@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
-import { Eye, EyeOff } from 'lucide-react';
 import React, { useState } from 'react';
 import { Options, withMask } from 'use-mask-input';
+import { Icon } from '../icon';
 
 type InputProps = React.ComponentProps<'input'> & {
   mask?: string | string[];
@@ -62,7 +62,11 @@ function Input({
           className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground"
           tabIndex={-1}
         >
-          {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+          {showPassword ? (
+            <Icon name="EyeOff" size={18} />
+          ) : (
+            <Icon name="Eye" size={18} />
+          )}
         </button>
       )}
     </div>

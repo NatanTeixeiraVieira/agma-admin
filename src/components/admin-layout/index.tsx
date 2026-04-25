@@ -29,6 +29,7 @@ const MENU_ITEMS = [
     url: '/tipos-transparencia',
     icon: 'Tag',
   },
+  { title: 'Cadastros de Famílias', url: '/familia', icon: 'Users' },
 ];
 
 function AdminSidebar() {

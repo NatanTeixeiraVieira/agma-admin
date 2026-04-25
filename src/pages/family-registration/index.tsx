@@ -8,12 +8,12 @@ import {
 } from '@/components/ui/card';
 import { Form } from '@/components/ui/form';
 import { Progress } from '@/components/ui/progress';
-import { CheckCircle2 } from 'lucide-react';
 
 import { AddressSection } from '@/components/address-section';
 import { BenefitsSection } from '@/components/benefits-section';
 import { ChildSection } from '@/components/child-section';
 import { FamilySection } from '@/components/family-section';
+import { Icon } from '@/components/icon';
 import { useFamilyRegistration } from './family-registration';
 
 export default function FamilyRegistrationPage() {
@@ -40,7 +40,7 @@ export default function FamilyRegistrationPage() {
           <Card>
             <CardHeader className="text-center">
               <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-                <CheckCircle2 className="h-10 w-10 text-primary" />
+                <Icon name="CheckCircle2" className="h-10 w-10 text-primary" />
               </div>
               <CardTitle>Cadastro enviado com sucesso</CardTitle>
               <CardDescription>
