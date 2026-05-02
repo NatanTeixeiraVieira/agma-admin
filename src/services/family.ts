@@ -1,4 +1,9 @@
-import { FamilyFormData } from '@/types/family';
+import {
+  CreateFamilyRequest,
+  CreateFamilyResponse,
+  FamilyFormData,
+} from '@/types/family';
+import { api } from './api';
 
 export interface FamilyVersion {
   version: number;
@@ -108,18 +113,11 @@ export function getFamilyById(id: string): StoredFamily | undefined {
   return readAll().find((f) => f.id === id);
 }
 
-export async function addFamily(data: FamilyFormData): Promise<StoredFamily> {
-  const families = readAll();
-  const now = new Date().toISOString();
-  const newFamily: StoredFamily = {
-    id: crypto.randomUUID(),
-    createdAt: now,
-    currentVersion: 1,
-    versions: [{ version: 1, data, active: true, createdAt: now }],
-  };
-  families.push(newFamily);
-  writeAll(families);
-  return newFamily;
+export async function createFamily(data: CreateFamilyRequest) {
+  console.log('🚀 ~ createFamily ~ data:', data);
+
+  const response = await api.post<CreateFamilyResponse>('/v1/form', data);
+  return response;
 }
 
 export async function updateFamily(

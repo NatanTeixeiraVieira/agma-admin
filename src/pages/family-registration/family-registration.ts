@@ -1,6 +1,10 @@
 import { toast } from '@/components/ui/sonner';
-import { addFamily } from '@/services/family';
-import { FamilyFormData } from '@/types/family';
+import { createFamily } from '@/services/family';
+import {
+  AutisticChildRequest,
+  CreateFamilyRequest,
+  FamilyFormData,
+} from '@/types/family';
 import { familySchema } from '@/validations/schemas/family';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
@@ -71,6 +75,57 @@ const CHILD_SUBFIELDS = [
   'schoolGrade',
   'schoolName',
 ] as const;
+
+function convertChildToRequest(
+  child: FamilyFormData['children'][number],
+): AutisticChildRequest {
+  return {
+    fullName: child.fullName,
+    birthDate:
+      child.birthDate instanceof Date
+        ? child.birthDate.toISOString().split('T')[0]
+        : child.birthDate,
+    gender: child.gender,
+    motherName: child.motherName,
+    fatherName: child.fatherName,
+    autismCondition: child.autismCondition,
+    supportLevel: child.supportLevel,
+    comorbidities: child.comorbidities.join(','),
+    comorbiditiesOther: child.comorbiditiesOther || undefined,
+    multiprofessionalSupport: Boolean(child.multiprofessionalSupport),
+    usesMedication: Boolean(child.usesMedication),
+    medicationNames: child.medicationNames || undefined,
+    schoolGrade: child.schoolGrade,
+    schoolName: child.schoolName,
+  };
+}
+
+function convertFormToRequest(form: FamilyFormData): CreateFamilyRequest {
+  return {
+    email: form.email,
+    respondent: form.respondent,
+    respondentOther: form.respondentOther || undefined,
+    respondentCpf: form.respondentCpf,
+    familyIncome: form.familyIncome,
+    imageAuthorization: Boolean(form.imageAuthorization),
+    numberOfChildren: String(form.numberOfChildren),
+    residenceType: form.residenceType,
+    residenceTypeOther: form.residenceTypeOther || undefined,
+    cep: form.cep || undefined,
+    street: form.street,
+    number: form.number,
+    neighborhood: form.neighborhood,
+    referencePoint: form.referencePoint || undefined,
+    motherPhone: form.motherPhone,
+    fatherPhone: form.fatherPhone || undefined,
+    stepParentName: form.stepParentName || undefined,
+    bpc: form.bpc,
+    crasRegistration: Boolean(form.crasRegistration),
+    municipalCard: Boolean(form.municipalCard),
+    ciptea: Boolean(form.ciptea),
+    autistic_children: form.children.map(convertChildToRequest),
+  };
+}
 
 export function useFamilyRegistration() {
   const [isSuccess, setIsSuccess] = useState(false);
@@ -206,9 +261,9 @@ export function useFamilyRegistration() {
   };
 
   const mutation = useMutation({
-    mutationFn: addFamily,
+    mutationFn: createFamily,
     onSuccess: () => {
-      toast.error('Cadastro enviado com sucesso');
+      toast.success('Cadastro enviado com sucesso');
       setIsSuccess(true);
       form.reset();
       setCurrentStep(0);
@@ -219,7 +274,8 @@ export function useFamilyRegistration() {
   });
 
   const onSubmit = form.handleSubmit((data) => {
-    mutation.mutate(data);
+    const convertedData = convertFormToRequest(data);
+    mutation.mutate(convertedData);
   });
 
   const isLastStep = safeStep === totalSteps - 1;
