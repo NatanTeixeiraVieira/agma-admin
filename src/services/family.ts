@@ -1,8 +1,14 @@
 import {
+  CompleteFamily,
   CreateFamilyRequest,
   CreateFamilyResponse,
   FamilyFormData,
+  FindAllFamiliesPaginatedOptions,
+  FindAllFamiliesPaginatedResponse,
+  UpdateFamilyAdminRequest,
+  UpdateFamilyRequest,
 } from '@/types/family';
+import { addSearchParamsInUrl } from '@/utils/pagination';
 import { api } from './api';
 
 export interface FamilyVersion {
@@ -105,34 +111,44 @@ export function getCurrentVersion(family: StoredFamily): FamilyVersion {
 
 // ----- public API ----------------------------------------------------------
 
-export function getFamilies(): StoredFamily[] {
-  return readAll();
-}
+export const getFamilies = async (
+  options?: FindAllFamiliesPaginatedOptions,
+) => {
+  const url = addSearchParamsInUrl(
+    'v1/form',
+    {
+      name: 'page',
+      value: options?.page,
+    },
+    {
+      name: 'limit',
+      value: options?.limit,
+    },
+  );
+
+  const response = await api.get<FindAllFamiliesPaginatedResponse>(url);
+  return response;
+};
 
 export function getFamilyById(id: string): StoredFamily | undefined {
   return readAll().find((f) => f.id === id);
 }
 
 export async function createFamily(data: CreateFamilyRequest) {
-  console.log('🚀 ~ createFamily ~ data:', data);
-
   const response = await api.post<CreateFamilyResponse>('/v1/form', data);
   return response;
 }
 
-export async function updateFamily(
-  id: string,
-  data: FamilyFormData,
-): Promise<StoredFamily> {
-  const families = readAll();
-  const idx = families.findIndex((f) => f.id === id);
-  if (idx === -1) throw new Error('Cadastro não encontrado');
-  // NOTE: backend will be the source of truth for versioning.
-  const current = getCurrentVersion(families[idx]);
-  const updated = appendVersion(families[idx], data, current.active);
-  families[idx] = updated;
-  writeAll(families);
-  return updated;
+export async function updateFamily(data: UpdateFamilyRequest) {
+  const response = await api.put<CompleteFamily>('/v1/form', data);
+
+  return response;
+}
+
+export async function updateFamilyAdmin(data: UpdateFamilyAdminRequest) {
+  const response = await api.put<CompleteFamily>('/v1/form/admin', data);
+
+  return response;
 }
 
 export async function setFamilyActive(
@@ -150,14 +166,17 @@ export async function setFamilyActive(
   return updated;
 }
 
-/**
- * Mock para integração com backend. O backend real deverá emitir um token
- * temporário associado ao cadastro, com a finalidade de permitir edição via
- * link público.
- */
-export async function requestEditToken(id: string): Promise<string> {
-  await new Promise((resolve) => setTimeout(resolve, 250));
-  const exists = getFamilyById(id);
-  if (!exists) throw new Error('Cadastro não encontrado');
-  return crypto.randomUUID();
+export async function generateFamilyLink(id: string): Promise<string> {
+  const response = await api.post<{ token: string }>(
+    `/v1/form/generate-link/family/${id}`,
+  );
+  return response.data.token;
 }
+
+export const getFamilyByCpf = async (cpf: string, token: string) => {
+  const response = await api.post<CompleteFamily>(
+    `/v1/form/family/cpf/${cpf}`,
+    { token },
+  );
+  return response;
+};

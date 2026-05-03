@@ -11,6 +11,10 @@ const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
   { path: '/cadastro-familia/:token', element: <FamilyRegistrationPage /> },
   {
+    path: '/cadastro-familia/:token/edit',
+    element: <FamilyRegistrationPage edit />,
+  },
+  {
     path: '/',
     element: <AdminLayout />,
     children: [

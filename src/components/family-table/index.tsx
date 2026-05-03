@@ -12,7 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { getCurrentVersion, type StoredFamily } from '@/services/family';
+import { Family } from '@/types/family';
 import { Icon } from '../icon';
 
 const RESPONDENT_LABELS: Record<string, string> = {
@@ -25,12 +25,14 @@ const RESPONDENT_LABELS: Record<string, string> = {
 };
 
 interface FamiliesTableProps {
-  families: StoredFamily[];
+  families: Family[];
   onEdit: (id: string) => void;
 }
 
-function describeRespondent(family: StoredFamily): string {
-  const data = getCurrentVersion(family).data;
+function describeRespondent(family: Family): string {
+  // TODO Implement version
+  // const data = getCurrentVersion(family).data;
+  const data = family;
   const base = RESPONDENT_LABELS[data.respondent] ?? data.respondent;
   if (data.respondent === 'outro' && data.respondentOther) {
     return `${base}: ${data.respondentOther}`;
@@ -64,17 +66,18 @@ export function FamiliesTable({ families, onEdit }: FamiliesTableProps) {
         </TableHeader>
         <TableBody>
           {families.map((family) => {
-            const current = getCurrentVersion(family);
+            // const current = getCurrentVersion(family);
+            const current = family;
             return (
               <TableRow key={family.id}>
                 <TableCell className="font-medium">
                   {describeRespondent(family)}
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground">
-                  {current.data.email}
+                  {current.email}
                 </TableCell>
                 <TableCell className="text-center text-sm">
-                  {current.data.children.length}
+                  {current.numberOfChildren}
                 </TableCell>
                 <TableCell>
                   {current.active ? (
@@ -84,7 +87,8 @@ export function FamiliesTable({ families, onEdit }: FamiliesTableProps) {
                   )}
                 </TableCell>
                 <TableCell className="text-center text-sm">
-                  v{family.currentVersion}
+                  {/* v{family.currentVersion} */}
+                  v1
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground">
                   {format(new Date(family.createdAt), 'dd/MM/yyyy', {

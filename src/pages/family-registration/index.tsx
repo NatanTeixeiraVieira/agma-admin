@@ -14,9 +14,24 @@ import { BenefitsSection } from '@/components/benefits-section';
 import { ChildSection } from '@/components/child-section';
 import { FamilySection } from '@/components/family-section';
 import { Icon } from '@/components/icon';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Masks } from '@/constants/masks';
 import { useFamilyRegistration } from './family-registration';
 
-export default function FamilyRegistrationPage() {
+export type FamilyRegistrationPageProps = {
+  edit?: boolean;
+};
+
+export default function FamilyRegistrationPage({
+  edit,
+}: FamilyRegistrationPageProps) {
   const {
     form,
     isPending,
@@ -28,10 +43,15 @@ export default function FamilyRegistrationPage() {
     isFirstStep,
     isLastStep,
     progress,
+    editFamilyCpf,
+    isCpfFormOpen,
+    isConfirmingCpf,
+    handleConfirmEditCpf,
+    setEditFamilyCpf,
     onSubmit,
     goNext,
     goPrev,
-  } = useFamilyRegistration();
+  } = useFamilyRegistration({ edit });
 
   if (isSuccess) {
     return (
@@ -106,7 +126,7 @@ export default function FamilyRegistrationPage() {
           </div>
         </div>
 
-        <Form form={form} onSubmit={onSubmit} className="space-y-6">
+        <Form form={form} className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>{activeStep.title}</CardTitle>
@@ -126,7 +146,12 @@ export default function FamilyRegistrationPage() {
             </Button>
 
             {isLastStep ? (
-              <Button type="submit" disabled={isPending} size="lg">
+              <Button
+                type="button"
+                disabled={isPending}
+                onClick={onSubmit}
+                size="lg"
+              >
                 {isPending ? 'Enviando...' : 'Enviar Cadastro'}
               </Button>
             ) : (
@@ -137,6 +162,34 @@ export default function FamilyRegistrationPage() {
           </div>
         </Form>
       </div>
+      {edit && (
+        <Dialog open={isCpfFormOpen}>
+          <DialogContent showCloseButton={false}>
+            <DialogHeader>
+              <DialogTitle>Confirmação de CPF</DialogTitle>
+            </DialogHeader>
+            <Label>
+              Por favor, digite o CPF do responsável por este cadastro.
+            </Label>
+            <Input
+              mask={Masks.cpf}
+              placeholder="000.000.000-00"
+              maxLength={14}
+              minLength={14}
+              value={editFamilyCpf}
+              onChange={(event) => setEditFamilyCpf(event.target.value)}
+            />
+            <Button
+              onClick={handleConfirmEditCpf}
+              disabled={isConfirmingCpf}
+              type="button"
+              className="w-full"
+            >
+              Confirmar
+            </Button>
+          </DialogContent>
+        </Dialog>
+      )}
     </main>
   );
 }

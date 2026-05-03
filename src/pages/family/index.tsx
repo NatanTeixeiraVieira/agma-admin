@@ -1,6 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-import { CopyRegistrationLinkButton } from '@/components/copy-registration-link-button';
 import { FamilyEditDialog } from '@/components/family-edit-dialog';
 import { FamiliesTable } from '@/components/family-table';
 import { useFamily } from './family';
@@ -18,7 +17,7 @@ export default function FamiliesAdminPage() {
               Cadastros de Famílias
             </h2>
           </div>
-          <CopyRegistrationLinkButton />
+          {/* <CopyRegistrationLinkButton /> */}
         </div>
 
         <Card>
@@ -32,7 +31,10 @@ export default function FamiliesAdminPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <FamiliesTable families={families} onEdit={openEdit} />
+            <FamiliesTable
+              families={families.map(({ family }) => family)}
+              onEdit={openEdit}
+            />
           </CardContent>
         </Card>
       </div>

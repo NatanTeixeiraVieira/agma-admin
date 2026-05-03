@@ -33,35 +33,23 @@ import { ChildSection } from '@/components/child-section';
 import { FamilySection } from '@/components/family-section';
 import { FamilyVersionSelect } from '@/components/family-version-select';
 
+import { setFamilyActive, updateFamilyAdmin } from '@/services/family';
 import {
-  getCurrentVersion,
-  setFamilyActive,
-  updateFamily,
-  type StoredFamily,
-} from '@/services/family';
-import { FamilyFormData } from '@/types/family';
+  FamilyFormData,
+  FindAllFamiliesPaginatedResponse,
+} from '@/types/family';
+import {
+  convertFamilyResponseToFormData,
+  convertFormToRequest,
+} from '@/utils/family-converters';
 import { familySchema } from '@/validations/schemas/family';
 import { Icon } from '../icon';
 
-interface FamilyEditDialogProps {
-  family: StoredFamily | null;
+type FamilyEditDialogProps = {
+  family: FindAllFamiliesPaginatedResponse['items'][number] | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-}
-
-function deserializeChildren(data: FamilyFormData): FamilyFormData {
-  // Datas vindas do localStorage chegam como string; o zod espera Date.
-  return {
-    ...data,
-    children: data.children.map((child) => ({
-      ...child,
-      birthDate:
-        child.birthDate instanceof Date
-          ? child.birthDate
-          : new Date(child.birthDate as unknown as string),
-    })),
-  };
-}
+};
 
 export function FamilyEditDialog({
   family,
@@ -72,15 +60,19 @@ export function FamilyEditDialog({
   const [selectedVersion, setSelectedVersion] = useState<number>(1);
   const [confirmDeactivate, setConfirmDeactivate] = useState(false);
 
-  const currentVersion = family?.currentVersion ?? 1;
+  const currentVersion = family?.family?.currentVersion ?? 1;
   const versionData = useMemo(() => {
     if (!family) return null;
-    const version = family.versions.find((v) => v.version === selectedVersion);
-    return version ? deserializeChildren(version.data) : null;
-  }, [family, selectedVersion]);
+    // const version = family.versions.find((v) => v.version === selectedVersion);
+    // return version ? deserializeChildren(version.data) : null;
+    return convertFamilyResponseToFormData(
+      family.family,
+      family.autisticChildren,
+    );
+  }, [family]);
 
   const isLatestSelected = selectedVersion === currentVersion;
-  const currentVersionEntry = family ? getCurrentVersion(family) : null;
+  const currentVersionEntry = family?.family;
   const isActive = currentVersionEntry?.active ?? true;
 
   const form = useForm<FamilyFormData>({
@@ -121,11 +113,11 @@ export function FamilyEditDialog({
 
   // Sempre que abrir o modal ou mudar a família, sincroniza com a versão atual.
   useEffect(() => {
-    if (family) setSelectedVersion(family.currentVersion);
+    if (family) setSelectedVersion(family.family.currentVersion ?? 1);
   }, [family]);
 
   const updateMutation = useMutation({
-    mutationFn: (data: FamilyFormData) => updateFamily(family!.id, data),
+    mutationFn: updateFamilyAdmin,
     onSuccess: () => {
       toast.success('Cadastro atualizado. Nova versão gerada.');
       queryClient.invalidateQueries({ queryKey: ['families'] });
@@ -135,7 +127,7 @@ export function FamilyEditDialog({
   });
 
   const activeMutation = useMutation({
-    mutationFn: (active: boolean) => setFamilyActive(family!.id, active),
+    mutationFn: (active: boolean) => setFamilyActive(family!.family.id, active),
     onSuccess: (_, active) => {
       toast.success(
         active
@@ -149,7 +141,30 @@ export function FamilyEditDialog({
   });
 
   const onSubmit = form.handleSubmit((data) => {
-    updateMutation.mutate(data);
+    if (!family) return;
+    const convertedData = convertFormToRequest(data);
+
+    updateMutation.mutate({
+      ...convertedData,
+      id: family.family.id,
+      autistic_children: data.children.map((child) => {
+        const childFound = family.autisticChildren.find(
+          ({ fullName }) => fullName === child.fullName,
+        );
+
+        return {
+          ...child,
+          birthDate:
+            child.birthDate instanceof Date
+              ? child.birthDate.toISOString().split('T')[0]
+              : child.birthDate,
+          comorbidities: child.comorbidities.join(','),
+          id: childFound!.id,
+          multiprofessionalSupport: child.multiprofessionalSupport === 'sim',
+          usesMedication: child.usesMedication === 'sim',
+        };
+      }),
+    });
   });
 
   if (!family || !versionData) {
@@ -187,7 +202,9 @@ export function FamilyEditDialog({
         <div className="space-y-2">
           <label className="text-sm font-medium text-foreground">Versão</label>
           <FamilyVersionSelect
-            versions={family.versions}
+            // TODO Add versions
+            versions={[]}
+            // versions={family.family.versions}
             currentVersion={currentVersion}
             value={selectedVersion}
             onChange={setSelectedVersion}

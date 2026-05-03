@@ -1,16 +1,18 @@
 import { toast } from '@/components/ui/sonner';
-import { createFamily } from '@/services/family';
+import { createFamily, getFamilyByCpf, updateFamily } from '@/services/family';
+import { CompleteFamily, FamilyFormData } from '@/types/family';
 import {
-  AutisticChildRequest,
-  CreateFamilyRequest,
-  FamilyFormData,
-} from '@/types/family';
+  convertFamilyResponseToFormData,
+  convertFormToRequest,
+} from '@/utils/family-converters';
 import { familySchema } from '@/validations/schemas/family';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
 import type { FieldPath } from 'react-hook-form';
 import { useFieldArray, useForm, useWatch } from 'react-hook-form';
+import { useParams } from 'react-router';
+import { FamilyRegistrationPageProps } from '.';
 
 const emptyChild = {
   fullName: '',
@@ -76,60 +78,17 @@ const CHILD_SUBFIELDS = [
   'schoolName',
 ] as const;
 
-function convertChildToRequest(
-  child: FamilyFormData['children'][number],
-): AutisticChildRequest {
-  return {
-    fullName: child.fullName,
-    birthDate:
-      child.birthDate instanceof Date
-        ? child.birthDate.toISOString().split('T')[0]
-        : child.birthDate,
-    gender: child.gender,
-    motherName: child.motherName,
-    fatherName: child.fatherName,
-    autismCondition: child.autismCondition,
-    supportLevel: child.supportLevel,
-    comorbidities: child.comorbidities.join(','),
-    comorbiditiesOther: child.comorbiditiesOther || undefined,
-    multiprofessionalSupport: Boolean(child.multiprofessionalSupport),
-    usesMedication: Boolean(child.usesMedication),
-    medicationNames: child.medicationNames || undefined,
-    schoolGrade: child.schoolGrade,
-    schoolName: child.schoolName,
-  };
-}
+type Props = Pick<FamilyRegistrationPageProps, 'edit'>;
 
-function convertFormToRequest(form: FamilyFormData): CreateFamilyRequest {
-  return {
-    email: form.email,
-    respondent: form.respondent,
-    respondentOther: form.respondentOther || undefined,
-    respondentCpf: form.respondentCpf,
-    familyIncome: form.familyIncome,
-    imageAuthorization: Boolean(form.imageAuthorization),
-    numberOfChildren: String(form.numberOfChildren),
-    residenceType: form.residenceType,
-    residenceTypeOther: form.residenceTypeOther || undefined,
-    cep: form.cep || undefined,
-    street: form.street,
-    number: form.number,
-    neighborhood: form.neighborhood,
-    referencePoint: form.referencePoint || undefined,
-    motherPhone: form.motherPhone,
-    fatherPhone: form.fatherPhone || undefined,
-    stepParentName: form.stepParentName || undefined,
-    bpc: form.bpc,
-    crasRegistration: Boolean(form.crasRegistration),
-    municipalCard: Boolean(form.municipalCard),
-    ciptea: Boolean(form.ciptea),
-    autistic_children: form.children.map(convertChildToRequest),
-  };
-}
-
-export function useFamilyRegistration() {
+export function useFamilyRegistration({ edit }: Props) {
   const [isSuccess, setIsSuccess] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
+  const [editFamilyCpf, setEditFamilyCpf] = useState<string>('');
+  const [isCpfFormOpen, setIsCpfFormOpen] = useState(true);
+  const [updateFamilyData, setUpdateFamilyData] =
+    useState<CompleteFamily | null>(null);
+
+  const { token } = useParams();
 
   const form = useForm<FamilyFormData>({
     resolver: zodResolver(familySchema),
@@ -160,6 +119,13 @@ export function useFamilyRegistration() {
     mode: 'onSubmit',
     reValidateMode: 'onChange',
   });
+
+  // useEffect(() => {
+  //   const cpf = sessionStorage.getItem('cpf');
+  //   if (!cpf) return;
+
+  //   setEditFamilyCpf(cpf);
+  // }, []);
 
   const { control } = form;
   const { fields, append, remove } = useFieldArray({
@@ -260,7 +226,7 @@ export function useFamilyRegistration() {
     }
   };
 
-  const mutation = useMutation({
+  const mutationCreate = useMutation({
     mutationFn: createFamily,
     onSuccess: () => {
       toast.success('Cadastro enviado com sucesso');
@@ -273,10 +239,92 @@ export function useFamilyRegistration() {
     },
   });
 
-  const onSubmit = form.handleSubmit((data) => {
-    const convertedData = convertFormToRequest(data);
-    mutation.mutate(convertedData);
+  const mutationUpdate = useMutation({
+    mutationFn: updateFamily,
+    onSuccess: () => {
+      toast.success('Cadastro editado com sucesso');
+      setIsSuccess(true);
+      form.reset();
+      setCurrentStep(0);
+    },
+    onError: () => {
+      toast.error('Erro ao editar o cadastro. Tente novamente.');
+    },
   });
+
+  // useEffect(() => {
+  //   const cpf = sessionStorage.getItem('cpf');
+
+  //   if (!cpf) return;
+
+  //   setEditFamilyCpf(cpf);
+  // }, []);
+
+  const mutationConfirmCpf = useMutation({
+    mutationFn: ({ cpf, token }: { cpf: string; token: string }) =>
+      getFamilyByCpf(cpf, token),
+    onSuccess: ({ data }) => {
+      // sessionStorage.setItem('cpf', editFamilyCpf);
+      setIsCpfFormOpen(false);
+      const formData = convertFamilyResponseToFormData(
+        data.family,
+        data.autisticChildren,
+      );
+      console.log('🚀 ~ useFamilyRegistration ~ formData:', formData);
+      setUpdateFamilyData(data);
+      form.reset(formData, { keepDefaultValues: true });
+    },
+    onError: () => {
+      toast.error('Falha ao validar CPF. Por favor, tente novamente.');
+    },
+  });
+
+  const onSubmit = form.handleSubmit((data) => {
+    if (!isLastStep) return;
+
+    const convertedData = convertFormToRequest(data);
+
+    if (edit) {
+      if (!updateFamilyData || !token) return;
+      console.log('🚀 ~ useFamilyRegistration ~ convertedData:', convertedData);
+
+      mutationUpdate.mutate({
+        ...convertedData,
+        id: updateFamilyData.family.id,
+        token,
+        autistic_children: data.children.map((child) => {
+          const childFound = updateFamilyData.autisticChildren.find(
+            ({ fullName }) => fullName === child.fullName,
+          );
+
+          return {
+            ...child,
+            birthDate:
+              child.birthDate instanceof Date
+                ? child.birthDate.toISOString().split('T')[0]
+                : child.birthDate,
+            comorbidities: child.comorbidities.join(','),
+            id: childFound!.id,
+            multiprofessionalSupport: child.multiprofessionalSupport === 'sim',
+            usesMedication: child.usesMedication === 'sim',
+          };
+        }),
+      });
+      return;
+    }
+
+    mutationCreate.mutate(convertedData);
+  });
+
+  const handleConfirmEditCpf = () => {
+    if (!token) return;
+    if (!editFamilyCpf || editFamilyCpf.length < 11) {
+      toast.error('CPF inválido.');
+      return;
+    }
+
+    mutationConfirmCpf.mutate({ cpf: editFamilyCpf, token });
+  };
 
   const isLastStep = safeStep === totalSteps - 1;
   const isFirstStep = safeStep === 0;
@@ -285,8 +333,7 @@ export function useFamilyRegistration() {
   return {
     form,
     fields,
-    onSubmit,
-    isPending: mutation.isPending,
+    isPending: mutationCreate.isPending,
     isSuccess,
     steps,
     currentStep: safeStep,
@@ -295,6 +342,13 @@ export function useFamilyRegistration() {
     isFirstStep,
     isLastStep,
     progress,
+    editFamilyCpf,
+    isCpfFormOpen,
+    isConfirmingCpf: mutationConfirmCpf.isPending,
+    handleConfirmEditCpf,
+    onSubmit,
+    setIsCpfFormOpen,
+    setEditFamilyCpf,
     goNext,
     goPrev,
   };

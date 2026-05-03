@@ -2,16 +2,16 @@ import { useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
-import { requestEditToken } from '@/services/family';
+import { generateFamilyLink } from '@/services/family';
 import { Icon } from '../icon';
 
-interface CopyLinkButtonProps {
+type CopyLinkButtonProps = {
   familyId: string;
-}
+};
 
 export function CopyLinkButton({ familyId }: CopyLinkButtonProps) {
   const mutation = useMutation({
-    mutationFn: () => requestEditToken(familyId),
+    mutationFn: () => generateFamilyLink(familyId),
     onSuccess: async (token) => {
       const link = `${window.location.origin}/cadastro-familia/${token}`;
       try {
