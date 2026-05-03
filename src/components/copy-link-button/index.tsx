@@ -13,7 +13,7 @@ export function CopyLinkButton({ familyId }: CopyLinkButtonProps) {
   const mutation = useMutation({
     mutationFn: () => generateFamilyLink(familyId),
     onSuccess: async (token) => {
-      const link = `${window.location.origin}/cadastro-familia/${token}`;
+      const link = `${window.location.origin}/cadastro-familia/${token}/edit`;
       try {
         await navigator.clipboard.writeText(link);
         toast.success('Link copiado para a área de transferência.');

@@ -2,7 +2,6 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 import { CopyLinkButton } from '@/components/copy-link-button';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -58,7 +57,7 @@ export function FamiliesTable({ families, onEdit }: FamiliesTableProps) {
             <TableHead>Responsável</TableHead>
             <TableHead>E-mail</TableHead>
             <TableHead className="text-center">Filhos</TableHead>
-            <TableHead>Status</TableHead>
+            {/* <TableHead>Status</TableHead> */}
             <TableHead className="text-center">Versão</TableHead>
             <TableHead>Criado em</TableHead>
             <TableHead className="w-35 text-right">Ações</TableHead>
@@ -79,16 +78,15 @@ export function FamiliesTable({ families, onEdit }: FamiliesTableProps) {
                 <TableCell className="text-center text-sm">
                   {current.numberOfChildren}
                 </TableCell>
-                <TableCell>
+                {/* <TableCell>
                   {current.active ? (
                     <Badge variant="default">Ativo</Badge>
                   ) : (
                     <Badge variant="secondary">Inativo</Badge>
                   )}
-                </TableCell>
+                </TableCell> */}
                 <TableCell className="text-center text-sm">
-                  {/* v{family.currentVersion} */}
-                  v1
+                  v{family.currentVersion}
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground">
                   {format(new Date(family.createdAt), 'dd/MM/yyyy', {

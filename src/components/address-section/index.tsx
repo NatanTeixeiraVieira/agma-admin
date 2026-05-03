@@ -34,7 +34,7 @@ export function AddressSection() {
         }}
       />
 
-      <FormField
+      {/* <FormField
         control={control}
         name="cep"
         render={({ field }) => (
@@ -51,7 +51,7 @@ export function AddressSection() {
             <FormMessage />
           </FormItem>
         )}
-      />
+      /> */}
 
       <FormField
         control={control}

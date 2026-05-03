@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -13,7 +13,6 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import {
@@ -33,7 +32,12 @@ import { ChildSection } from '@/components/child-section';
 import { FamilySection } from '@/components/family-section';
 import { FamilyVersionSelect } from '@/components/family-version-select';
 
-import { setFamilyActive, updateFamilyAdmin } from '@/services/family';
+import { familyKey } from '@/constants/query-keys';
+import {
+  getFamilies,
+  setFamilyActive,
+  updateFamilyAdmin,
+} from '@/services/family';
 import {
   FamilyFormData,
   FindAllFamiliesPaginatedResponse,
@@ -57,7 +61,7 @@ export function FamilyEditDialog({
   onOpenChange,
 }: FamilyEditDialogProps) {
   const queryClient = useQueryClient();
-  const [selectedVersion, setSelectedVersion] = useState<number>(1);
+  const [selectedVersion, setSelectedVersion] = useState<number | null>(null);
   const [confirmDeactivate, setConfirmDeactivate] = useState(false);
 
   const currentVersion = family?.family?.currentVersion ?? 1;
@@ -88,6 +92,32 @@ export function FamilyEditDialog({
   });
 
   const numberOfChildren = useWatch({ control, name: 'numberOfChildren' });
+
+  const { data: families } = useQuery({
+    queryKey: familyKey(family?.family.respondentCpf, selectedVersion!),
+    enabled: !!selectedVersion,
+    queryFn: async () => {
+      return (
+        await getFamilies({
+          page: 1,
+          limit: 100,
+          cpf: family?.family.respondentCpf,
+          version: selectedVersion!,
+        })
+      ).data.items;
+    },
+  });
+
+  useEffect(() => {
+    if (!families?.[0]) return;
+
+    form.reset(
+      convertFamilyResponseToFormData(
+        families[0].family,
+        families?.[0].autisticChildren,
+      ),
+    );
+  }, [families, form]);
 
   useEffect(() => {
     if (
@@ -202,11 +232,15 @@ export function FamilyEditDialog({
         <div className="space-y-2">
           <label className="text-sm font-medium text-foreground">Versão</label>
           <FamilyVersionSelect
-            // TODO Add versions
-            versions={[]}
+            versions={Array.from(
+              { length: family.versionsCount },
+              (_, index) => ({
+                version: index + 1,
+              }),
+            )}
             // versions={family.family.versions}
             currentVersion={currentVersion}
-            value={selectedVersion}
+            value={selectedVersion!}
             onChange={setSelectedVersion}
           />
           {readOnly && (
@@ -242,14 +276,14 @@ export function FamilyEditDialog({
 
           {!readOnly && (
             <DialogFooter className="gap-2 sm:gap-2">
-              <Button
+              {/* <Button
                 type="button"
                 variant="outline"
                 onClick={() => setConfirmDeactivate(true)}
                 disabled={isPending}
               >
                 {isActive ? 'Desativar cadastro' : 'Reativar cadastro'}
-              </Button>
+              </Button> */}
               <Button type="submit" disabled={isPending}>
                 {updateMutation.isPending ? 'Salvando...' : 'Salvar alterações'}
               </Button>
@@ -263,9 +297,9 @@ export function FamilyEditDialog({
         >
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>
+              {/* <AlertDialogTitle>
                 {isActive ? 'Desativar cadastro' : 'Reativar cadastro'}
-              </AlertDialogTitle>
+              </AlertDialogTitle> */}
               <AlertDialogDescription>
                 Essa ação gerará uma nova versão do cadastro
                 {isActive

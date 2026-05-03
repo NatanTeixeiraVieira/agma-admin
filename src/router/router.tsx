@@ -9,7 +9,7 @@ import TransparencyTypesPage from '../pages/transparency-types';
 
 const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
-  { path: '/cadastro-familia/:token', element: <FamilyRegistrationPage /> },
+  { path: '/cadastro-familia', element: <FamilyRegistrationPage /> },
   {
     path: '/cadastro-familia/:token/edit',
     element: <FamilyRegistrationPage edit />,

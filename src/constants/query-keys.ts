@@ -5,7 +5,11 @@ export const transparencyDocumentsKey = (
   filter?: FindAllTransparencyOptions,
 ) => ['transparency-documents', JSON.stringify(filter)];
 
-export const familyKey = () => ['families'];
+export const familyKey = (cpf?: string, version?: number) => [
+  'families',
+  cpf,
+  version,
+];
 
 export const familyByCpfKey = (cpf: string, token: string) => [
   'family',

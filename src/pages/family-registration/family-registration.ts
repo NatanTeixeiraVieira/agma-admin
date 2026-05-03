@@ -275,7 +275,7 @@ export function useFamilyRegistration({ edit }: Props) {
       form.reset(formData, { keepDefaultValues: true });
     },
     onError: () => {
-      toast.error('Falha ao validar CPF. Por favor, tente novamente.');
+      toast.error('CPF ou permissão para editar inválidos');
     },
   });
 

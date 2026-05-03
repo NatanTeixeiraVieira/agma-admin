@@ -102,6 +102,8 @@ export type UpdateFamilyAdminRequest = Omit<UpdateFamilyRequest, 'token'>;
 export type FindAllFamiliesPaginatedOptions = {
   page?: number;
   limit?: number;
+  cpf?: string;
+  version?: number;
 };
 
 export type Family = {
@@ -131,6 +133,7 @@ export type Family = {
   updatedAt: Date;
   active: boolean;
   currentVersion?: number;
+  versionCount?: number;
 };
 
 export type Autistic = {
@@ -157,6 +160,7 @@ export type Autistic = {
 export type CompleteFamily = {
   family: Family;
   autisticChildren: Autistic[];
+  versionsCount: number;
 };
 
 export type FindAllFamiliesPaginatedResponse = Pagination<CompleteFamily>;

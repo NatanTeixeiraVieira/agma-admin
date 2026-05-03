@@ -96,7 +96,7 @@ export default function FamilyRegistrationPage({
           </h1>
           <p className="text-muted-foreground">
             Preencha as informações abaixo para cadastrar sua família e seus
-            filhos junto à Associação.
+            filhos junto à AGMA.
           </p>
         </header>
 

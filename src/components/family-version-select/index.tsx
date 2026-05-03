@@ -1,6 +1,3 @@
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-
 import {
   Select,
   SelectContent,
@@ -8,10 +5,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { FamilyVersion } from '@/services/family';
 
 interface FamilyVersionSelectProps {
-  versions: FamilyVersion[];
+  versions: { version: number }[];
   currentVersion: number;
   value: number;
   onChange: (version: number) => void;
@@ -33,10 +29,7 @@ export function FamilyVersionSelect({
       <SelectContent>
         {sorted.map((v) => (
           <SelectItem key={v.version} value={String(v.version)}>
-            Versão {v.version} —{' '}
-            {format(new Date(v.createdAt), 'dd/MM/yyyy HH:mm', {
-              locale: ptBR,
-            })}
+            Versão {v.version}
             {v.version === currentVersion ? ' (atual)' : ''}
           </SelectItem>
         ))}

@@ -124,6 +124,14 @@ export const getFamilies = async (
       name: 'limit',
       value: options?.limit,
     },
+    {
+      name: 'cpf',
+      value: options?.cpf,
+    },
+    {
+      name: 'version',
+      value: options?.version,
+    },
   );
 
   const response = await api.get<FindAllFamiliesPaginatedResponse>(url);
