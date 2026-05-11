@@ -92,11 +92,11 @@ export default function FamilyRegistrationPage({
       <div className="mx-auto max-w-3xl space-y-6">
         <header className="space-y-2 text-center">
           <h1 className="text-3xl font-bold tracking-tight text-foreground">
-            Cadastro de Famílias
+            {edit ? 'Edição' : 'Cadastro'} de Famílias
           </h1>
           <p className="text-muted-foreground">
-            Preencha as informações abaixo para cadastrar sua família e seus
-            filhos junto à AGMA.
+            Preencha as informações abaixo para {edit ? 'editar' : 'cadastrar'}{' '}
+            sua família na AGMA.
           </p>
         </header>
 

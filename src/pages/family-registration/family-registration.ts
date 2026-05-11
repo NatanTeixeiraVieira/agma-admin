@@ -8,6 +8,7 @@ import {
 import { familySchema } from '@/validations/schemas/family';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
+import { AxiosError } from 'axios';
 import { useEffect, useMemo, useState } from 'react';
 import type { FieldPath } from 'react-hook-form';
 import { useFieldArray, useForm, useWatch } from 'react-hook-form';
@@ -234,7 +235,11 @@ export function useFamilyRegistration({ edit }: Props) {
       form.reset();
       setCurrentStep(0);
     },
-    onError: () => {
+    onError: (error: AxiosError) => {
+      if (error.status === 409) {
+        toast.error((error.response?.data as any)?.message);
+        return;
+      }
       toast.error('Erro ao enviar o cadastro. Tente novamente.');
     },
   });
@@ -270,7 +275,6 @@ export function useFamilyRegistration({ edit }: Props) {
         data.family,
         data.autisticChildren,
       );
-      console.log('🚀 ~ useFamilyRegistration ~ formData:', formData);
       setUpdateFamilyData(data);
       form.reset(formData, { keepDefaultValues: true });
     },
